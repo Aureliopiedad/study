@@ -1095,3 +1095,190 @@ fragment X : [xX];
 fragment Y : [yY];
 fragment Z : [zZ];
 ```
+
+### siddhiQL.g4的说明
+
+单纯地这样看siddhiQL文件，显得有些太多了，我们以一个简单的siddhi的例子来实际的看一下：
+
+```shell
+@App:name('Test')
+define stream inputStreamA (id int, content string, enterpriseId string, timestamp long);
+define stream inputStreamB (id int, content string, enterpriseId string, timestamp long);
+define stream outputStream (id int, content string, enterpriseId string, timestamp long);
+from every eventA=inputStreamA[ id == 1] -> eventB=inputStreamB[ eventA.enterpriseId == eventB.enterpriseId and eventB.id == 2 ] within 50 sec
+select eventA.id, eventA.content, eventA.enterpriseId, eventA.timestamp insert into outputStream;
+```
+
+根据siddhiQL.g4对siddhiQL整体的定义来看，最开始需要解析的是：
+
+```shell
+parse
+    : siddhi_app EOF
+    ;
+
+siddhi_app
+    : (app_annotation|error)*
+      (definition_stream|definition_table|definition_trigger|definition_function|definition_window|definition_aggregation|error) 
+      (';' (definition_stream|definition_table|definition_trigger|definition_function|definition_window|definition_aggregation|error))*
+      (';' (execution_element|error))* ';'?
+    ;
+```
+
+所以，在进入siddhiQL解析流程的第一步，是解析成ParseContext。针对ParseContext的处理，可以看io.siddhi.query.compiler.internal.SiddhiQLBaseVisitorImpl#visitParse方法，提取出siddhi_app部分，解析Siddhi_appContent，再执行io.siddhi.query.compiler.internal.SiddhiQLBaseVisitorImpl#visitSiddhi_app。
+
+先看第一行，根据siddhiQL.g4的定义：
+
+```shell
+app_annotation
+    : '@' APP ':' name ('(' annotation_element (',' annotation_element )* ')' )?
+    ;
+
+APP:      A P P;
+
+fragment A : [aA];
+fragment P : [pP];
+
+# 在@APP中，name会被解析为id，所以keyword在这里不展示
+name
+    :id|keyword
+    ;
+
+# 在@APP中，id会被解析为ID，所以ID_QUOTES在这里不展示
+id: ID_QUOTES|ID ;
+
+ID : [a-zA-Z_] [a-zA-Z_0-9]* ;
+
+# 在@APP中，不存在property_name
+annotation_element
+    :(property_name '=')? property_value
+    ;
+
+property_value
+    :string_value
+    ;
+
+string_value: STRING_LITERAL;
+
+# 这段代码的意思是，匹配引号中的字符串，最后会把段首段尾的引号清除。支持单引号、双引号、三引号
+STRING_LITERAL
+    :(
+        '\'' ( ~('\u0000'..'\u001f' | '\''| '"' ) )* '\''
+        |'"' ( ~('\u0000'..'\u001f'  |'"') )* '"'
+     )  {setText(getText().substring(1, getText().length()-1));}
+     |('"""'(.*?)'"""')  {setText(getText().substring(3, getText().length()-3));}
+    ;
+```
+
+这一步的解析可见io.siddhi.query.compiler.internal.SiddhiQLBaseVisitorImpl#visitApp_annotation，在@APP中，最终会走到io.siddhi.query.compiler.internal.SiddhiQLBaseVisitorImpl#visitId，读取id的文字作为annotation填充到siddhiApp中。
+
+第一步解析完后，会填充siddhiApp的annotations。
+
+第二步开始解析stream，先看看stream的定义：
+
+```shell
+# 在这个例子中不包括annotation
+definition_stream
+    : annotation* DEFINE STREAM source '(' attribute_name attribute_type (',' attribute_name attribute_type )* ')'
+    ;
+
+DEFINE:   D E F I N E;
+STREAM:   S T R E A M;
+
+# 在这个例子中，不包括内部流(#)和故障流(!)
+source
+    :(inner='#' | fault='!')? stream_id
+    ;
+
+stream_id
+    :name
+    ;
+
+attribute_name
+    :name
+    ;
+
+attribute_type
+    :STRING     
+    |INT        
+    |LONG       
+    |FLOAT      
+    |DOUBLE     
+    |BOOL      
+    |OBJECT     
+    ;
+```
+
+解析stream没什么可说的，这个例子最终生成了三个stream，填充进siddhiApp。
+
+最后一步指的是execution_element：
+
+```shell
+# 这个例子中不存在partition，本次不说明
+execution_element
+    :query|partition
+    ;
+
+# 这个例子中不存在annotation，本次不说明
+query
+    : annotation* FROM query_input query_section? output_rate? query_output
+    ;
+
+FROM:     F R O M;
+
+# 这个例子中只存在pattern_stream，其他不说明
+query_input
+    : (standard_stream|join_stream|pattern_stream|sequence_stream|anonymous_stream)
+    ;
+
+# 这个例子中不存在absent_pattern_source_chain，不说明
+pattern_stream
+    : every_pattern_source_chain within_time?
+    | absent_pattern_source_chain within_time?
+    ;
+
+every_pattern_source_chain
+    : '('every_pattern_source_chain')' 
+    | EVERY '('pattern_source_chain ')'   
+    | every_pattern_source_chain  '->' every_pattern_source_chain
+    | pattern_source_chain
+    | EVERY pattern_source 
+    ;
+
+pattern_source_chain
+    : '('pattern_source_chain')'
+    | pattern_source_chain  '->' pattern_source_chain
+    | pattern_source
+    ;
+
+pattern_source
+    :logical_stateful_source|pattern_collection_stateful_source|standard_stateful_source|logical_absent_stateful_source
+    ;
+
+standard_stateful_source
+    : (event '=')? basic_source
+    ;
+
+event
+    :name
+    ;
+
+basic_source
+    : source basic_source_stream_handlers?
+    ;
+
+basic_source_stream_handlers
+    :(basic_source_stream_handler)+ 
+    ;
+
+basic_source_stream_handler
+    : filter | stream_function
+    ;
+
+filter
+    :'#'? '['expression']'
+    ;
+
+expression
+    :math_operation
+    ;
+```
