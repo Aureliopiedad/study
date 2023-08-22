@@ -1210,7 +1210,170 @@ attribute_type
 
 解析stream没什么可说的，这个例子最终生成了三个stream，填充进siddhiApp。
 
-最后一步指的是execution_element：
+最后一步指的是execution_element，包括from within select，这个比较复杂，得分开看：
+
+在本例中，适配execution_element的语句是：
+
+```shell
+from every eventA=inputStreamA[ id == 1] -> eventB=inputStreamB[ eventA.enterpriseId == eventB.enterpriseId and eventB.id == 2 ] within 50 sec
+select eventA.id, eventA.content, eventA.enterpriseId, eventA.timestamp insert into outputStream;
+```
+
+直接说结论，在这个例子中，上述的siddhiQL被分解为：
+
+```shell
+# FROM
+from
+# query_input
+# pattern_stream
+    # every_pattern_source_chain
+        # every_pattern_source_chain
+            # every just string
+            every 
+            # pattern_source
+            # standard_stateful_source
+                # event
+                # id
+                # just string
+                eventA
+                # =, just string
+                =
+                # basic_source
+                    # source
+                    # stream_id
+                    # name
+                    # id, just string
+                    inputStreamA
+                    # basic_source_stream_handlers
+                    # basic_source_stream_handler
+                    # filter
+                        # [, just string
+                        [ 
+                        # expression
+                        # equality_math_operation
+                            # basic_math_operation
+                            # attribute_reference
+                            # attribute_name
+                            # name
+                            # id, just string
+                            id 
+                            # just string
+                            == 
+                            # basic_math_operation
+                            # constant_value
+                            # signed_int_value
+                            # just value
+                            1
+                        # ], just string
+                        ] 
+        # -> just string
+        -> 
+        # every_pattern_source_chain
+        # pattern_source_chain
+        # pattern_source
+        # standard_stateful_source
+            # event
+            # id, just string
+            eventB
+            # just string
+            =
+            # basic_source
+                # source
+                # stream_id
+                # name
+                # id
+                inputStreamB
+                # basic_source_stream_handlers
+                # basic_source_stream_handler
+                # filter
+                    # just string
+                    [ 
+                    # expression
+                    # and_math_operation
+                        # equality_math_operation
+                            # basic_math_operation
+                            # attribute_reference
+                                # name
+                                eventA
+                                .
+                                # attribute_name
+                                # name
+                                enterpriseId 
+                            # just string
+                            == 
+                            # basic_math_operation
+                            # attribute_reference
+                                # name
+                                eventB
+                                .
+                                # attribute_name
+                                # name
+                                enterpriseId 
+                        # just string
+                        and 
+                        # equality_math_operation
+                            # basic_math_operation
+                            # attribute_reference
+                                # name
+                                eventB
+                                .
+                                # attribute_name
+                                id 
+                            == 
+                            # basic_math_operation
+                                # constant_value
+                                # singed_int_value
+                                2 
+                    # just string
+                    ] 
+    # within_time
+        # within just string
+        within 
+        # time_value
+        50 sec
+# query_section
+    # select just string
+    select 
+    # output_attribute
+    # attribute_reference
+        # name
+        eventA
+        .
+        # attribute_name
+        # name
+        id
+    # , 
+    , 
+    # output_attribute
+    # attribute_reference
+        eventA
+        .
+        content
+    # ,
+    , 
+    # output_attribute
+    # attribute_reference
+        eventA
+        .
+        enterpriseId
+    # ,
+    , 
+    # output_attribute
+    # attribute_reference
+        eventA
+        .
+        timestamp
+# query_output
+    # just string
+    insert 
+    # just string
+    into 
+    # target
+    # source
+    # stream_id
+    # name
+    outputStream
+```
 
 ```shell
 # 这个例子中不存在partition，本次不说明
@@ -1234,6 +1397,10 @@ query_input
 pattern_stream
     : every_pattern_source_chain within_time?
     | absent_pattern_source_chain within_time?
+    ;
+
+within_time
+    :WITHIN time_value
     ;
 
 every_pattern_source_chain
