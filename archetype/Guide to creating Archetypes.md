@@ -421,4 +421,70 @@ parentArtifactId=PROPERTY_PARENT_ARTIFACT_ID
 parentVersion=PROPERTY_PARENT_VERSION
 ```
 
+## 原理
+
+在本文的最后，介绍一些archetype的原理。
+
+### Maven debug
+
+首先，根据archetype创建项目本质上是一个maven cli，提一下如何进行Maven debug。方便定位和解释archetype原理。
+
+首先在控制台输入命令，执行一个根据archetype创建项目的mvn cli命令：
+
+```shell
+D:\code>mvnDebug archetype:generate -s D:\apache-maven-3.5.4\conf\setting.xml -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.4 -DarchetypeCatalog=local -DgroupId=test -DartifactId=test
+```
+
+如上所示，将mvn命令替换为mvnDebug，输入回车即可。
+
+在idea的界面，点击debug configuration，新建一个remote jvm debug，maven debug的默认端口是8000，输入localhost即可。
+
+### 源码分析
+
+当成功执行maven debug命令时，推荐将断点放置到org.apache.maven.archetype.ui.generation.DefaultArchetypeGenerationQueryer#confirmConfiguration上。
+
+```java
+public class DefaultArchetypeGenerationQueryer {
+    ...
+
+    @Override
+    public boolean confirmConfiguration( ArchetypeConfiguration archetypeConfiguration )throws PrompterException {
+        StringBuilder query = new StringBuilder( "Confirm properties configuration:\n" );
+
+        for ( String property : archetypeConfiguration.getRequiredProperties() )
+        {
+            query.append( property + ": " + archetypeConfiguration.getProperty( property ) + "\n" );
+        }
+
+        String answer = prompter.prompt( query.toString(), "Y" );
+
+        return "Y".equalsIgnoreCase( answer );
+    }
+
+    ...
+}
+```
+
+这个地方是mvn archetype插件最终要求用户确认的地方。经过这里，archetype成功填充所有最基本的参数。
+
+接下来是org.apache.maven.archetype.generator.DefaultFilesetArchetypeGenerator，这里会根据选择的archetype，查看是否存在尚未填写的参数，具体的参数内容指的是META-INF/maven/archetype-metadata.xml中requiredProperty指定的字段。
+
+在这个过程中，执行：
+
+```java
+private String getPackageInPathFormat( String aPackage )
+{
+    return StringUtils.replace( aPackage, ".", "/" );
+}
+```
+
+创建目录：
+
+```java
+File outputDirectoryFile = new File( request.getOutputDirectory(), artifactId );
+File basedirPom = new File( request.getOutputDirectory(), Constants.ARCHETYPE_POM );
+File pom = new File( outputDirectoryFile, Constants.ARCHETYPE_POM );
+```
+
+从选定的archetype包中，获取全部archetype-resources/下的文件，存储文件结构到：org/apache/maven/archetype/common/DefaultArchetypeArtifactManager.java:320。
 
