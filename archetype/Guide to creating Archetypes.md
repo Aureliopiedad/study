@@ -488,3 +488,4 @@ File pom = new File( outputDirectoryFile, Constants.ARCHETYPE_POM );
 
 从选定的archetype包中，获取全部archetype-resources/下的文件，存储文件结构到：org/apache/maven/archetype/common/DefaultArchetypeArtifactManager.java:320。
 
+后续使用velocity渲染模板。
