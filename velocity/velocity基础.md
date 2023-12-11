@@ -88,7 +88,7 @@ $myarray.get(2)
 $myarray.set(1, 'test')
 ```
 
-在某些情况下，'$a.x'和'$a.getX()'是相等的。对于短引用，有如下按顺序的映射规则：
+对于短引用，有如下按顺序的映射规则：
 
 - 对于'$a.x'：
   1. $a.getx()
@@ -131,6 +131,8 @@ Jack is a ${vice}maniac.
 - 变量引用
   ```
   #set( $a = $b )
+  #set( $a = $b - 1 )
+  #set( $a = $b * 1 )
   ```
 - 字符串常量
   ```
@@ -154,5 +156,24 @@ Jack is a ${vice}maniac.
   ```
 - 键值对
   ```
-  #set( $a = ['key': 'value', 'key1': 'value1'] )
+  ## $a.key 和 $a.get('key')是相等的
+  #set( $a = {'key': 'value', 'key1': 'value1'} )
   ```
+
+一般来说，使用单引号不会执行解析文本的操作，例如：'${value}1'和"${value}1"是不一样的，可以通过stringliterals.interpolate配置来修改。
+
+经常会有大段大段的不解析的文本，这种情况需要使用类似以下的语法：
+
+```
+hello
+
+#[[
+#set( $result =  $test1.query('key1'))
+hello $result
+
+#set( $result =  $test1.query('key3'))
+hello $result
+]]#
+```
+
+这样输出的就是单纯的字符串，不会执行任何操作。
