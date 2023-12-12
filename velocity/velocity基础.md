@@ -126,6 +126,8 @@ Jack is a ${vice}maniac.
 #if($a==1)true enough#{else}no way!#end
 ```
 
+#### Set
+
 最经常使用的指令应该是'#set'，set指令要求左侧必须是一个引用类型，右侧必须是以下类型之一：
 
 - 变量引用
@@ -177,3 +179,105 @@ hello $result
 ```
 
 这样输出的就是单纯的字符串，不会执行任何操作。
+
+#### If ElseIf Else
+
+```
+#set($list = [1,2,3,4])
+#set($result = '1')
+
+#foreach($i in $list)
+    #if($i == 1)
+        1
+    #elseif($i == 2)
+        2
+    #elseif($i == 3)
+        3
+    #else
+        4
+    #end
+#end
+
+#if($result)
+    t
+#else
+    f
+#end
+
+#if($a)
+    a
+#else
+    b
+#end
+```
+
+输出为：
+
+```shell
+1
+2
+3
+4
+
+t
+
+b
+```
+
+1. 在Velocity中，if能判断的不止是布尔类型，在传递非布尔值的情况下，if的作用是判空，满足非空即返回true。
+2. 在Velocity中，使用'=='判断对象是否相等时，判断逻辑是调用对象的toString()进行比较
+3. 在Velocity中，也可以使用AND(&&)、OR(||)、NOT(!)
+4. 在Velocity中，逻辑运算符也有字符版本，eq, ne, and, or, not, gt, ge, lt, le。
+
+#### Foreach
+
+```
+#set( $map = {'key1': 'value1', 'key2': 'value2'} )
+#foreach($key in $map.keySet())
+Index:$foreach.index, Key: $key, Value: $map.get($key) #if($foreach.hasNext); #{else}。#set($count = $foreach.count) #{end}
+#end
+List count: $count
+```
+
+输出为：
+
+```shell
+Index:0, Key: key1, Value: value1 ; 
+Index:1, Key: key2, Value: value2 。 
+List count: 2
+```
+
+除此之外，#foreach还存在类似$foreach.first、$foreach.last、$foreach.parent、$foreach.topmost等方法。和java一样，可以使用break跳出循环。可以通过directive.foreach.maxloops配置最大循环次数。
+
+#### Include
+
+[将本地文件插入模板](https://velocity.apache.org/engine/1.7/user-guide.html#include)
+
+#### Parse
+
+[将本地VM文件插入模板](https://velocity.apache.org/engine/1.7/user-guide.html#parse)
+
+#### Break
+
+跳出当前渲染。
+
+#### Stop
+
+停止所有渲染。
+
+#### Evaluate
+
+类似eval，相当于重新渲染字符串。例如：
+
+```
+#set($source1 = "abc")
+#set($select = "1")
+#set($dynamicsource = "$source$select")
+## $dynamicsource is now the string '$source1'
+#evaluate($dynamicsource)
+## 真实输出为abc
+```
+
+#### Define
+
+允许把一段代码分配给某个引用。
