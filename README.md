@@ -10,7 +10,9 @@
 
 ## effective java学习
 
+如何编写出更清晰、更正确、更健壮且更易于重用的代码。
 
+[effective_java](https://github.com/Aureliopiedad/effective_java)
 
 ## antlr
 
