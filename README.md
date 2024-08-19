@@ -1,5 +1,12 @@
 # Study
 
+## todo list
+
+- b+树、b树
+- mysql聚簇索引
+- es：倒排索引
+- 雪花算法
+
 ## antlr
 
 ANTLR(ANother Tool for Language Recognition)是一个语法解析器生成器，用于读取、处理、执行或翻译结构化文本或二进制文件，被用于构建语言、工具和框架。根据语法，ANTLR生成了一个可以构建和遍历解析树的解析器。
