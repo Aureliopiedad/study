@@ -72,3 +72,7 @@ Siddhi是一个流处理(Stream processing)和复杂事件处理(CEP)平台。�
 ## velocity
 
 Velocity 是一个基于Java 的模板引擎。允许网页设计者引用Java代码中定义的方法。
+
+## Tika
+
+一个强大的Java文档内容解析工具。
