@@ -7,6 +7,7 @@
 - es：倒排索引
 - 雪花算法
 - effective java
+- clickhouse
 
 ## effective java学习
 
