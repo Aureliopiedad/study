@@ -9,6 +9,10 @@
 - effective java
 - clickhouse
 
+## 日常遇到的问题
+
+- es bulk问题排查
+
 ## effective java学习
 
 如何编写出更清晰、更正确、更健壮且更易于重用的代码。
