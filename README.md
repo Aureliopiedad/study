@@ -11,7 +11,7 @@
 
 ## 日常遇到的问题
 
-- es bulk问题排查
+- es flink bulk问题排查
 
 ## effective java学习
 
