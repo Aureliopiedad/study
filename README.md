@@ -5,7 +5,6 @@
 - b+树、b树
 - mysql聚簇索引
 - es：倒排索引
-- 雪花算法
 - effective java
 - clickhouse
 
@@ -13,6 +12,7 @@
 
 - es flink bulk问题排查
 - 伪共享(false sharing)
+- 雪花算法
 
 ## effective java学习
 
