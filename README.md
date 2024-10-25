@@ -12,6 +12,7 @@
 ## 日常遇到的问题
 
 - es flink bulk问题排查
+- 伪共享(false sharing)
 
 ## effective java学习
 
