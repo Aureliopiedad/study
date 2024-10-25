@@ -73,4 +73,4 @@ public class Elasticsearch7ApiCallBridge
 
 在BulkProcessor#startFlushTask中，会创建一个fixedDelay的定时任务，用于在指定的interval时触发flush()将bulk传递给ES。同样的，在每次向缓冲区中插入request，会校验action和size。
 
-真正的execute逻辑在BulkRequestHandler中，当执行遇到报错时，会在client中调用Retry#onFailure，这里会根据配置的数值进行重试。当concurrentRequests为0时，主线程会强制等待bulk的返回；因为有new Semaphore(concurrentRequests > 0 ? concurrentRequests : 1)的限制，实际上并行的bulk不会超过concurrentRequests的限制，但是异步请求和不阻塞主线程的操作使得在此期间新的bulk请求可以在后台生成，也就意味着后台最多维护concurrentRequests+1个bulk请求。
+真正的execute逻辑在BulkRequestHandler中，当执行遇到报错时，会在client中调用Retry#onFailure，这里会根据配置的数值进行重试。当concurrentRequests为0时，主线程会通过CountDownLatch#await()的机制强制等待bulk的返回；因为有new Semaphore(concurrentRequests > 0 ? concurrentRequests : 1)的限制，实际上并行的bulk不会超过concurrentRequests的限制，但是异步请求和不阻塞主线程的操作使得在此期间新的bulk请求可以在后台生成，也就意味着后台最多维护concurrentRequests+1个bulk请求。
