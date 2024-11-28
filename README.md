@@ -13,6 +13,7 @@
 - es flink bulk问题排查
 - 伪共享(false sharing)
 - 雪花算法
+- Flink UI页面统计无法获取的问题
 
 ## effective java学习
 
