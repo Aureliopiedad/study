@@ -21,3 +21,5 @@ Flink的UI界面中，每个算子链都会有Flink提供的`Records Received`�
 在构建`IOMetricsInfo`的过程中，在`org.apache.flink.runtime.rest.handler.util.MutableIOMetrics#addIOMetrics`中会调用`org.apache.flink.runtime.rest.handler.legacy.metrics.MetricFetcher#update`，在这个update()方法中，会调用`org.apache.flink.runtime.rest.handler.legacy.metrics.MetricFetcherImpl#queryMetrics`。
 
 在`org.apache.flink.runtime.metrics.dump.MetricQueryService#queryMetrics`中，会调用`org.apache.flink.runtime.metrics.dump.MetricDumpSerialization.MetricDumpSerializer#serialize`，在这个方法里，会实际调用`org.apache.flink.streaming.connectors.kafka.internals.metrics.KafkaMetricWrapper`，这个wrapper就是调用kafka老api的地方。
+
+在Flink进程启动前，会通过`org.apache.flink.runtime.metrics.groups.AbstractMetricGroup#gauge(java.lang.String, G)`的方式，将kafka consumer和producer的监控通过`org.apache.flink.runtime.metrics.MetricRegistryImpl#register`注册，这样就能以上面的方式调用监控。
