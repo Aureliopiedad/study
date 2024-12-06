@@ -4,9 +4,10 @@
 
 - b+树、b树
 - mysql聚簇索引
-- es：倒排索引
 - effective java
 - clickhouse
+- 跳表与redis zset的实现
+- 红黑树、前缀树
 
 ## 日常遇到的问题
 
@@ -14,6 +15,7 @@
 - 伪共享(false sharing)
 - 雪花算法
 - Flink UI页面统计无法获取的问题
+- es：倒排索引
 
 ## effective java学习
 
