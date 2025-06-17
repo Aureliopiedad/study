@@ -16,6 +16,7 @@
 - 雪花算法
 - Flink UI页面统计无法获取的问题
 - es：倒排索引
+- validator 获取国际化报错信息的问题
 
 ## effective java学习
 
